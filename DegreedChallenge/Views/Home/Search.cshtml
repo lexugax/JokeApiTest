@@ -1,0 +1,134 @@
+﻿
+@{
+    ViewData["Title"] = "Search Jokes";
+}
+
+<h1>Search for jokes by typing a seach term</h1>
+
+<div>
+    <div style="margin:10px 0 0 25px;">
+        <input type="text" id="searchTerm" value="" autofocus>
+        <button id="searchBtn" onclick="SearchJokes(document.getElementById('searchTerm').value, 0)">Search</button>
+    </div>
+    <div style="margin-top:50px;">
+        <h4 id="message"></h4>
+    </div>
+    <div style="margin-top:50px;">
+        <div id="shortJokes"></div>
+        <div id="mediumJokes"></div>
+        <div id="longJokes"></div>
+    </div>
+    <div id="pages" style="margin-top:30px; margin-bottom:100px; visibility:hidden;">
+        <button id="previous" onclick="PreviousPage()" style="float:left; width:100px; text-align:center;">Previous</button>
+        <p id="page" style="float:left; width:150px; text-align:center;"></p>
+        <button id="next" onclick="NextPage()" style="float:left; width:100px; text-align:center;">Next</button>
+    </div>
+</div>
+
+<script>
+    var _searchTerm;
+    var _currentPage;
+    var _maxPage;
+
+    window.onload = function () {
+        var input = document.getElementById("searchTerm");
+        input.addEventListener("keyup", function(event) {
+            if (event.keyCode === 13) {
+            event.preventDefault();
+            document.getElementById("searchBtn").click();
+            }
+        });
+    }
+
+    function SearchJokes(searchTerm, page) {
+        _searchTerm = searchTerm;
+        ClearJokes();
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var data = JSON.parse(this.responseText);
+                var message = document.getElementById('message');
+                if (data['status'] == 200) {
+                    if (page > 0) {
+                        _currentPage = page;
+                    }
+                    else {
+                        _currentPage = data['current_page'];
+                        page = _currentPage;
+                    }
+                    _maxPage = data['total_pages'];
+                    message.innerHTML = data['total_jokes'] + " jokes in " + _maxPage + " page(s)";
+                    var jokes = data["results"];
+                    for (var i = 0; i < jokes.length; i++) {
+                        var obj = jokes[i];
+                        var wordCount = obj["joke"].split(' ').length;
+                        var highlightedJoke = HighlightText(obj["joke"], searchTerm);
+                        var entry = document.createElement('div');
+                        entry.innerHTML = "<p>" + highlightedJoke, searchTerm + "</p>";
+                        if (wordCount < 10) {
+                            document.getElementById('shortJokes').appendChild(entry);
+                        }
+                        else if (wordCount < 20) {
+                            document.getElementById('mediumJokes').appendChild(entry);
+                        }
+                        else {
+                            document.getElementById('longJokes').appendChild(entry);
+                        }                      
+                    }
+                    document.getElementById('pages').style.visibility = "visible";
+                    document.getElementById('page').innerHTML = "Page " + _currentPage;
+                    if (_currentPage == 1) {
+                        document.getElementById('previous').disabled = true;
+                    }
+                    else {
+                        document.getElementById('previous').disabled = false;
+                    }
+                    if (_currentPage == _maxPage) {
+                        document.getElementById('next').disabled = true;
+                    }
+                    else {
+                        document.getElementById('next').disabled = false;
+                    }
+                }
+                else {
+                    message.innerHTML = 'Error while searching for jokes :('
+                }
+            }
+        };
+        xhttp.open("GET", '@Url.Action("SearchJokes", "Home")' + '?searchTerm=' + searchTerm + "&page=" + page, true);
+        xhttp.send();
+    }
+
+    function PreviousPage() {
+        if (_currentPage > 1) {
+            SearchJokes(_searchTerm, _currentPage - 1);
+        }
+    }
+
+    function NextPage() {
+        if (_currentPage < _maxPage) {
+            SearchJokes(_searchTerm, _currentPage + 1);
+        }
+    }
+
+    function HighlightText(text, toHighlight) {
+        if (text.includes(toHighlight)) {
+            return text.replace(toHighlight, '<strong>' + toHighlight + '</strong>');
+        }
+
+        return text;
+    }
+
+    function ClearJokes() {
+        var sdiv = document.getElementById('shortJokes');
+        var mdiv = document.getElementById('mediumJokes');
+        var ldiv = document.getElementById('longJokes');
+        while (sdiv.firstChild && sdiv.removeChild(sdiv.firstChild));
+        while (mdiv.firstChild && mdiv.removeChild(mdiv.firstChild));
+        while(ldiv.firstChild && ldiv.removeChild(ldiv.firstChild));
+    }
+
+    function ShowPages(currentPage, maxPage) {
+
+    }
+</script>
