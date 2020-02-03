@@ -43,11 +43,11 @@
     function SearchJokes(searchTerm, page) {
         _searchTerm = searchTerm;
         ClearJokes();
+        var message = document.getElementById('message');
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
                 var data = JSON.parse(this.responseText);
-                var message = document.getElementById('message');
                 if (data['status'] == 200) {
                     if (page > 0) {
                         _currentPage = page;
@@ -73,7 +73,7 @@
                         }
                         else {
                             document.getElementById('longJokes').appendChild(entry);
-                        }                      
+                        }
                     }
                     document.getElementById('pages').style.visibility = "visible";
                     document.getElementById('page').innerHTML = "Page " + _currentPage;
@@ -89,11 +89,11 @@
                     else {
                         document.getElementById('next').disabled = false;
                     }
-                }
-                else {
-                    message.innerHTML = 'Error while searching for jokes :('
-                }
+                }                               
             }
+            else if(this.status == 500) {
+                message.innerHTML = 'Error while searching for jokes :('
+            } 
         };
         xhttp.open("GET", '@Url.Action("SearchJokes", "Home")' + '?searchTerm=' + searchTerm + "&page=" + page, true);
         xhttp.send();
@@ -128,7 +128,4 @@
         while(ldiv.firstChild && ldiv.removeChild(ldiv.firstChild));
     }
 
-    function ShowPages(currentPage, maxPage) {
-
-    }
 </script>

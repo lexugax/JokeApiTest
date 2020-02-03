@@ -29,11 +29,11 @@
     }
 
    function GetJoke() {
+        var jokeSection = document.getElementById('randomJoke');
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
                 var data = JSON.parse(this.responseText);
-                var jokeSection = document.getElementById('randomJoke');
                 var status = data["status"];
                 if (status == 200) {
                     jokeSection.innerHTML = data["joke"];
@@ -42,6 +42,9 @@
                     jokeSection.innerHTML = 'Error while getting joke :('
                 }
             }
+            else if(this.status == 500) {
+                jokeSection.innerHTML = 'Error while getting joke :('
+            } 
         };
         xhttp.open("GET", '@Url.Action("GetRandomJoke", "Home")', true);
         xhttp.send();
